@@ -5,7 +5,6 @@ from airflow.models import BaseOperator
 
 class StageToRedshiftOperator(BaseOperator):
     ui_color = '#358140'
-    template_fields = ("s3_key",)
 
     copy_sql = """
         COPY {table}

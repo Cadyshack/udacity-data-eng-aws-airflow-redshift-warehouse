@@ -13,7 +13,7 @@ default_args = {
     'owner': 'udacity',
     'start_date': pendulum.datetime(2018, 11, 1, tz='UTC'),
     "depends_on_past": False,
-    "retries": 0,
+    "retries": 3,
     "retry_delay": timedelta(minutes=5),
     "email_on_retry": False
 }
@@ -48,7 +48,11 @@ def final_project():
     )
 
     load_songplays_table = LoadFactOperator(
-        task_id='Load_songplays_fact_table',
+        task_id = 'Load_songplays_fact_table',
+        redshift_conn_id ="redshift",
+        table = "songplays",
+        sql_query = SqlQueries.songplay_table_insert,
+        append_data = False
     )
 
     load_user_dimension_table = LoadDimensionOperator(
