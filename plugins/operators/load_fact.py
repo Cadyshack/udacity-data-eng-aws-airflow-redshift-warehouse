@@ -1,22 +1,34 @@
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models import BaseOperator
-from airflow.utils.decorators import apply_defaults
+from helpers.sql_queries import SqlQueries
 
 class LoadFactOperator(BaseOperator):
-
     ui_color = '#F98866'
 
-    @apply_defaults
+    insert_sql_template = """
+        INSERT INTO {table}
+        {sql_query}
+    """
     def __init__(self,
-                 # Define your operators params (with defaults) here
-                 # Example:
-                 # conn_id = your-connection-name
-                 *args, **kwargs):
+                 *,
+                redshift_conn_id = "redshift",
+                table = "songplays",
+                sql_query = SqlQueries.songplay_table_insert,
+                **kwargs):
 
-        super(LoadFactOperator, self).__init__(*args, **kwargs)
-        # Map params here
-        # Example:
-        # self.conn_id = conn_id
+        super().__init__(**kwargs)
+        self.redshift_conn_id = redshift_conn_id
+        self.table = table
+        self.sql_query = sql_query
 
     def execute(self, context):
-        self.log.info('LoadFactOperator not implemented yet')
+        redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+
+        self.log.info(f"Loading data into fact table {self.table}")
+        formatted_sql = self.insert_sql_template.format(
+            table=self.table,
+            sql_query=self.sql_query
+        )
+        redshift_hook.run(formatted_sql)
+
+        self.log.info(f"LoadFactOperator completed for table {self.table}")
