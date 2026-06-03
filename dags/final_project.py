@@ -89,7 +89,54 @@ def final_project():
 
     run_quality_checks = DataQualityOperator(
         task_id='Run_data_quality_checks',
+        redshift_conn_id="redshift",
+        tables=["songplays", "users", "songs", "artists", "time"],
+        dq_checks=[
+            {
+                'description': 'songplays should have no NULL playid',
+                'check_sql': "SELECT COUNT(*) FROM songplays WHERE playid IS NULL",
+                'expected_result': 0
+            },
+            {
+                'description': 'users should have no NULL userid',
+                'check_sql': "SELECT COUNT(*) FROM users WHERE userid IS NULL",
+                'expected_result': 0
+            },
+            {
+                'description': 'users.level should only be free or paid',
+                'check_sql': """
+                    SELECT COUNT(*) FROM users 
+                    WHERE level NOT IN ('free', 'paid')
+                """,
+                'expected_result': 0
+            },
+            {
+                'description': 'songs should have no duplicate songid',
+                'check_sql': """
+                    SELECT COUNT(*) FROM (
+                        SELECT songid, COUNT(*) 
+                        FROM songs 
+                        GROUP BY songid 
+                        HAVING COUNT(*) > 1
+                    )
+                """,
+                'expected_result': 0
+            },
+            {
+                'description': 'artists should have no duplicate artistid',
+                'check_sql': """
+                    SELECT COUNT(*) FROM (
+                        SELECT artistid, COUNT(*) 
+                        FROM artists 
+                        GROUP BY artistid 
+                        HAVING COUNT(*) > 1
+                    )
+                """,
+                'expected_result': 0
+            },
+        ]
     )
+
 
     end_operator = DummyOperator(task_id='End_execution')
 

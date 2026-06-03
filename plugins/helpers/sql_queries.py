@@ -26,13 +26,43 @@ class SqlQueries:
     """)
 
     song_table_insert = ("""
-        SELECT distinct song_id, title, artist_id, year, duration
-        FROM staging_songs
+        SELECT  
+            song_id,
+            title, 
+            artist_id, 
+            year,
+            duration
+        FROM (
+            SELECT song_id,
+                title,
+                artist_id,
+                year,
+                duration,
+                ROW_NUMBER() OVER (PARTITION BY song_id ORDER BY year DESC) AS row_num
+            FROM staging_songs
+            WHERE song_id IS NOT NULL
+        )
+        WHERE row_num = 1;
     """)
 
     artist_table_insert = ("""
-        SELECT distinct artist_id, artist_name, artist_location, artist_latitude, artist_longitude
-        FROM staging_songs
+        SELECT  
+            artist_id,
+            name,
+            location,
+            latitude,
+            longitude
+        FROM (
+            SELECT  artist_id,
+                    artist_name AS name,
+                    artist_location AS location,
+                    artist_latitude::DECIMAL(9,6) AS latitude,
+                    artist_longitude::DECIMAL(9,6) AS longitude,
+                    ROW_NUMBER() OVER (PARTITION BY artist_id ORDER BY artist_name) AS row_num
+            FROM staging_songs
+            WHERE artist_id IS NOT NULL
+        )
+        WHERE row_num = 1;
     """)
 
     time_table_insert = ("""
@@ -40,3 +70,5 @@ class SqlQueries:
                extract(month from start_time), extract(year from start_time), extract(dayofweek from start_time)
         FROM songplays
     """)
+
+    
