@@ -52,7 +52,6 @@ def final_project():
         redshift_conn_id ="redshift",
         table = "songplays",
         sql_query = SqlQueries.songplay_table_insert,
-        append_data = False
     )
 
     load_user_dimension_table = LoadDimensionOperator(
