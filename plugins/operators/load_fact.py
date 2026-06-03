@@ -14,22 +14,15 @@ class LoadFactOperator(BaseOperator):
                 redshift_conn_id = "redshift",
                 table = "songplays",
                 sql_query = SqlQueries.songplay_table_insert,
-                append_data = False,
                 **kwargs):
 
         super().__init__(**kwargs)
         self.redshift_conn_id = redshift_conn_id
         self.table = table
         self.sql_query = sql_query
-        self.append_data = append_data
-
 
     def execute(self, context):
         redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-
-        if not self.append_data:
-            self.log.info(f"Clearing data from fact table {self.table}")
-            redshift_hook.run(f"TRUNCATE TABLE {self.table}")
 
         self.log.info(f"Loading data into fact table {self.table}")
         formatted_sql = self.insert_sql_template.format(
