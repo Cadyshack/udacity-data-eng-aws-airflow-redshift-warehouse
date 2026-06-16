@@ -19,17 +19,7 @@ A production-style ELT pipeline that ingests raw JSON event data from Amazon S3 
 
 ## Architecture
 
-```text
-S3 (JSON logs)
-    ├── log-data/        →  staging_events  ┐
-    └── song-data/       →  staging_songs   ┘
-                                             └──►  songplays  (fact)
-                                                   users       (dim)
-                                                   songs       (dim)
-                                                   artists     (dim)
-                                                   time        (dim)
-                                                        └──► Data Quality Checks
-```
+![Pipeline architecture diagram](assets/pipeline_diagram.png)
 
 Raw JSON files land in S3. Airflow's `StageToRedshiftOperator` issues a `COPY` command directly into Redshift staging tables, then transformation operators populate the star schema using SQL defined in a shared `SqlQueries` helper class.
 
